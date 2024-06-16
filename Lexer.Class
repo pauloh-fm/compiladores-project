@@ -1,0 +1,84 @@
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class Lexer {
+    
+    public static ArrayList<Token> tokenize(String input) {
+        ArrayList<Token> tokens = new ArrayList<>();
+        
+        // Expressões regulares para os tokens
+        String idRegex = "[a-zA-Z][a-zA-Z0-9]*";
+        String intLitRegex = "\\d+";
+        String boolLitRegex = "(true|false)";
+        String opAdRegex = "[+\\-]|or";
+        String opMulRegex = "[*/]|and";
+        String opRelRegex = "[<>]=?";
+        String delimiterRegex = "[;,\\(\\)\\.]";
+        String keywordRegex = "(program|var|integer|boolean|begin|end|if|then|else|while|do)";
+        
+        String regex = String.format("%s|%s|%s|%s|%s|%s|%s|%s|%s",
+                                     idRegex, intLitRegex, boolLitRegex, opAdRegex,
+                                     opMulRegex, opRelRegex, delimiterRegex, keywordRegex);
+        
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(input);
+        
+        while (matcher.find()) {
+            String tokenValue = matcher.group();
+            Token.TokenType tokenType;
+            
+            if (tokenValue.matches(idRegex)) {
+                tokenType = Token.TokenType.ID;
+            } else if (tokenValue.matches(intLitRegex)) {
+                tokenType = Token.TokenType.INT_LIT;
+            } else if (tokenValue.matches(boolLitRegex)) {
+                tokenType = Token.TokenType.BOOL_LIT;
+            } else if (tokenValue.matches(opAdRegex)) {
+                tokenType = Token.TokenType.OP_AD;
+            } else if (tokenValue.matches(opMulRegex)) {
+                tokenType = Token.TokenType.OP_MUL;
+            } else if (tokenValue.matches(opRelRegex)) {
+                tokenType = Token.TokenType.OP_REL;
+            } else if (tokenValue.matches(delimiterRegex)) {
+                tokenType = Token.TokenType.DELIMITER;
+            } else if (tokenValue.matches(keywordRegex)) {
+                tokenType = Token.TokenType.KEYWORD;
+            } else {
+                throw new RuntimeException("Token não reconhecido: " + tokenValue);
+            }
+            
+            tokens.add(new Token(tokenValue, tokenType));
+        }
+        
+        return tokens;
+    }
+    
+    public static void main(String[] args) {
+        String input = "program exemplo; var x: integer; begin x := 42; end.";
+        ArrayList<Token> tokens = tokenize(input);
+        
+        for (Token token : tokens) {
+            System.out.println(token);
+        }
+    }
+}
+
+class Token {
+    enum TokenType {
+        ID, INT_LIT, BOOL_LIT, OP_AD, OP_MUL, OP_REL, DELIMITER, KEYWORD
+    }
+    
+    private String value;
+    private TokenType type;
+    
+    public Token(String value, TokenType type) {
+        this.value = value;
+        this.type = type;
+    }
+    
+    @Override
+    public String toString() {
+        return String.format("(%s, %s)", type.name(), value);
+    }
+}
